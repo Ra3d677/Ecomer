@@ -20,7 +20,13 @@ export interface StoreSettings {
       border: string;
     }
   };
-  categoriesLayout: 'grid' | 'list';
+  categoriesLayout: 'grid' | 'list' | 'mosaic' | 'minimal' | 'modern';
+  collectionPageSettings?: {
+    columns: 2 | 3 | 4;
+    showProductCount: boolean;
+    cardStyle: 'glass' | 'classic' | 'minimal' | 'gradient';
+    bannerEnabled: boolean;
+  };
   productsLayout: 'static' | 'carousel';
   bannerSettings: BannerSettings;
   marqueeSettings: {

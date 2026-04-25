@@ -52,7 +52,8 @@ export async function getStoreSettings(): Promise<StoreSettings | null> {
       categoriesLayout: data.categories_layout,
       productsLayout: data.products_layout,
       bannerSettings: data.banner_settings,
-      marqueeSettings: data.marquee_settings
+      marqueeSettings: data.marquee_settings,
+      collectionPageSettings: data.collection_page_settings
     } as StoreSettings;
   }
   

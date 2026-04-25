@@ -42,10 +42,11 @@ CREATE TABLE store_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_name TEXT DEFAULT 'LUXE',
   template_colors JSONB,
-  categories_layout TEXT DEFAULT 'grid' CHECK (categories_layout IN ('grid', 'list')),
+  categories_layout TEXT DEFAULT 'grid',
   products_layout TEXT DEFAULT 'static' CHECK (products_layout IN ('static', 'carousel')),
   banner_settings JSONB,
   marquee_settings JSONB,
+  collection_page_settings JSONB,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -57,7 +58,8 @@ INSERT INTO store_settings (
   categories_layout,
   products_layout,
   banner_settings,
-  marquee_settings
+  marquee_settings,
+  collection_page_settings
 ) VALUES (
   gen_random_uuid(),
   'LUXE',
@@ -65,7 +67,8 @@ INSERT INTO store_settings (
   'grid',
   'static',
   '{"autoPlay":true,"interval":5000,"showDots":true,"transition":"slide","showArrows":true}'::jsonb,
-  '{"items":[{"id":"m1","text":"SPECIAL OFFERS"},{"id":"m2","text":"عروض خاصة"},{"id":"m3","text":"UP TO 50% OFF"},{"id":"m4","text":"خصومات تصل إلى ٥٠٪"},{"id":"m5","text":"FREE SHIPPING"},{"id":"m6","text":"شحن مجاني"}],"speed":30,"enabled":true,"textColor":"#0f172a","backgroundColor":"#e2ebe6"}'::jsonb
+  '{"items":[{"id":"m1","text":"SPECIAL OFFERS"},{"id":"m2","text":"عروض خاصة"},{"id":"m3","text":"UP TO 50% OFF"},{"id":"m4","text":"خصومات تصل إلى ٥٠٪"},{"id":"m5","text":"FREE SHIPPING"},{"id":"m6","text":"شحن مجاني"}],"speed":30,"enabled":true,"textColor":"#0f172a","backgroundColor":"#e2ebe6"}'::jsonb,
+  '{"columns":3,"showProductCount":true,"cardStyle":"classic","bannerEnabled":true}'::jsonb
 );
 
 -- Setup Row Level Security (RLS) policies

@@ -59,7 +59,8 @@ export async function saveStoreSettings(settings: any) {
       categories_layout: settings.categoriesLayout,
       products_layout: settings.productsLayout,
       banner_settings: settings.bannerSettings,
-      marquee_settings: settings.marqueeSettings
+      marquee_settings: settings.marqueeSettings,
+      collection_page_settings: settings.collectionPageSettings
     }).eq('id', existing.id);
     if (error) console.error("Error saving settings:", error);
   }

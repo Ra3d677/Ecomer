@@ -120,15 +120,87 @@ export default function SettingsManager({
               <h2 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">Layout & Display</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Categories Page Layout</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Categories (Collections) Layout</label>
                   <select 
                     value={settings.categoriesLayout} 
-                    onChange={e => setSettings({...settings, categoriesLayout: e.target.value as 'grid' | 'list'})} 
+                    onChange={e => setSettings({...settings, categoriesLayout: e.target.value as any})} 
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   >
-                    <option value="grid">Grid (Side-by-side cards)</option>
-                    <option value="list">List (Vertical wide cards)</option>
+                    <option value="grid">Uniform Grid</option>
+                    <option value="mosaic">Featured Mosaic (Current)</option>
+                    <option value="modern">Modern Overlays</option>
+                    <option value="minimal">Minimalist Cards</option>
+                    <option value="list">Vertical List</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Card Style</label>
+                  <select 
+                    value={settings.collectionPageSettings?.cardStyle || 'classic'} 
+                    onChange={e => setSettings({
+                      ...settings, 
+                      collectionPageSettings: {
+                        ...(settings.collectionPageSettings || { columns: 3, showProductCount: true, cardStyle: 'classic', bannerEnabled: true }),
+                        cardStyle: e.target.value as any
+                      }
+                    })} 
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="classic">Classic Shadows</option>
+                    <option value="glass">Glassmorphism</option>
+                    <option value="minimal">Flat Minimal</option>
+                    <option value="gradient">Gradient Overlays</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Grid Columns (on Desktop)</label>
+                  <select 
+                    value={settings.collectionPageSettings?.columns || 3} 
+                    onChange={e => setSettings({
+                      ...settings, 
+                      collectionPageSettings: {
+                        ...(settings.collectionPageSettings || { columns: 3, showProductCount: true, cardStyle: 'classic', bannerEnabled: true }),
+                        columns: Number(e.target.value) as any
+                      }
+                    })} 
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value={2}>2 Columns</option>
+                    <option value={3}>3 Columns</option>
+                    <option value={4}>4 Columns</option>
+                  </select>
+                </div>
+                <div className="flex flex-col justify-center">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={settings.collectionPageSettings?.showProductCount ?? true} 
+                      onChange={e => setSettings({
+                        ...settings, 
+                        collectionPageSettings: {
+                          ...(settings.collectionPageSettings || { columns: 3, showProductCount: true, cardStyle: 'classic', bannerEnabled: true }),
+                          showProductCount: e.target.checked
+                        }
+                      })} 
+                      className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary"
+                    />
+                    <span className="text-sm font-medium text-slate-700">Show Product Count Tag</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer mt-3">
+                    <input 
+                      type="checkbox" 
+                      checked={settings.collectionPageSettings?.bannerEnabled ?? true} 
+                      onChange={e => setSettings({
+                        ...settings, 
+                        collectionPageSettings: {
+                          ...(settings.collectionPageSettings || { columns: 3, showProductCount: true, cardStyle: 'classic', bannerEnabled: true }),
+                          bannerEnabled: e.target.checked
+                        }
+                      })} 
+                      className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary"
+                    />
+                    <span className="text-sm font-medium text-slate-700">Show Header Banner</span>
+                  </label>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Products Display Style</label>
