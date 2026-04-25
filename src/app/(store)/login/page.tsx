@@ -112,9 +112,10 @@ function LoginContent() {
     <div className="w-full max-w-[350px]">
       {/* Main Card */}
       <div className="border border-slate-200 rounded-lg p-8 shadow-sm mb-6">
-        <h1 className="text-2xl font-medium mb-4">
+        <h1 className="text-2xl font-medium mb-1">
           {step === "email" ? "Sign in" : "Verify Email"}
         </h1>
+        <p className="text-[10px] text-slate-400 mb-4 font-mono uppercase tracking-widest">v2.0 - Amazon Style</p>
 
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-3 mb-4 flex items-start gap-2">
