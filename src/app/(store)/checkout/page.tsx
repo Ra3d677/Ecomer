@@ -5,6 +5,7 @@ import { useCartStore } from "@/store/cart";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false);
@@ -19,10 +20,33 @@ export default function CheckoutPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login?redirect=/checkout");
+      } else {
+        // Pre-fill name from metadata if it exists
+        setFormData(prev => ({
+          ...prev,
+          name: user.user_metadata?.full_name || prev.name
+        }));
+        setIsCheckingAuth(false);
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
+  if (!mounted || isCheckingAuth) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+    </div>
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

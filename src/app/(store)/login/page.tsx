@@ -1,181 +1,239 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2, Mail, ArrowRight, ShieldCheck, MessageSquare } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser } = useAuthStore();
+  
+  const redirectUrl = searchParams.get("redirect") || "/shop";
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser({
+          uid: user.id,
+          email: user.email || "",
+          displayName: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
+          photoURL: null
+        });
+        router.push(redirectUrl);
+      }
+    };
+    checkUser();
+  }, [router, setUser, redirectUrl]);
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    setMessage("");
+    
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin + "/auth/callback",
+        },
+      });
+      
+      if (error) throw error;
+      
+      setStep("otp");
+      setMessage("Verification code sent to your email.");
+    } catch (err: any) {
+      setError(err.message || "Failed to send verification code.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
     
     try {
-      // Mock Login logic
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      if (email && password) {
-        setUser({
-          uid: "mock-user-id",
-          email: email,
-          displayName: email.split('@')[0],
-          photoURL: null
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'signup', // or 'magiclink' depending on setup
+      });
+      
+      // If signup fails, try regular login OTP
+      if (error) {
+        const { data: retryData, error: retryError } = await supabase.auth.verifyOtp({
+          email,
+          token: otp,
+          type: 'signin',
         });
-        router.push("/shop");
-      } else {
-        throw new Error("Invalid credentials");
+        
+        if (retryError) throw retryError;
+        
+        if (retryData.user) {
+          handleSuccess(retryData.user);
+        }
+      } else if (data.user) {
+        handleSuccess(data.user);
       }
     } catch (err: any) {
-      setError(err.message || "Failed to login. Please check your credentials.");
+      setError(err.message || "Invalid or expired verification code.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError("");
-    
-    try {
-      // Mock Google Login
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setUser({
-        uid: "mock-google-id",
-        email: "googleuser@example.com",
-        displayName: "Google User",
-        photoURL: null
-      });
-      router.push("/shop");
-    } catch (err: any) {
-      setError(err.message || "Failed to login with Google.");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSuccess = (user: any) => {
+    setUser({
+      uid: user.id,
+      email: user.email || "",
+      displayName: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
+      photoURL: null
+    });
+    router.push(redirectUrl);
   };
 
   return (
-    <div className="flex min-h-[90vh] bg-slate-50">
-      {/* Left side - Image */}
-      <div className="hidden lg:flex w-1/2 relative">
-        <Image
-          src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1600&q=80"
-          alt="Premium Fashion"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-slate-950/20" />
-        <div className="absolute inset-0 flex flex-col justify-end p-16 text-white">
-          <h2 className="text-4xl font-extrabold mb-4">Welcome back to LUXE</h2>
-          <p className="text-lg text-slate-200 max-w-md">Sign in to access your personalized recommendations, track your orders, and enjoy a seamless shopping experience.</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-white flex flex-col items-center pt-12 px-4">
+      {/* Amazon Style Logo */}
+      <Link href="/shop" className="mb-8">
+        <h1 className="text-3xl font-black tracking-tighter text-slate-900 flex items-center gap-1">
+          MULTO<span className="text-orange-500 text-4xl">.</span>
+        </h1>
+      </Link>
 
-      {/* Right side - Form */}
-      <div className="flex w-full lg:w-1/2 flex-col justify-center items-center p-8 sm:p-12 lg:p-24 bg-white">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Sign In</h1>
-            <p className="text-slate-500">Enter your details to access your account.</p>
-          </div>
+      <div className="w-full max-w-[350px]">
+        {/* Main Card */}
+        <div className="border border-slate-200 rounded-lg p-8 shadow-sm mb-6">
+          <h1 className="text-2xl font-medium mb-4">
+            {step === "email" ? "Sign in" : "Verify Email"}
+          </h1>
 
           {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm mb-6 border border-red-100 flex items-start">
-              <span className="block sm:inline">{error}</span>
+            <div className="bg-red-50 border-l-4 border-red-500 p-3 mb-4 flex items-start gap-2">
+              <span className="text-red-700 text-xs">{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2" htmlFor="email">Email Address</label>
-              <input
-                id="email"
-                type="email"
-                required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+          {message && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 flex items-start gap-2">
+              <span className="text-blue-700 text-xs">{message}</span>
             </div>
+          )}
 
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-semibold text-slate-700" htmlFor="password">Password</label>
-                <Link href="/forgot-password" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Forgot password?</Link>
-              </div>
-              <div className="relative">
+          {step === "email" ? (
+            <form onSubmit={handleSendOtp} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-xs font-bold text-slate-900 mb-1">
+                  Email
+                </label>
                 <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
+                  id="email"
+                  type="email"
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-400 rounded-md shadow-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all text-sm"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
               </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-slate-950 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-slate-800 focus:ring-4 focus:ring-slate-200 transition-all flex justify-center items-center disabled:opacity-70"
-            >
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
-            </button>
-          </form>
-
-          <div className="mt-8 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-slate-500">Or continue with</span>
-            </div>
-          </div>
-
-          <div className="mt-8">
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all"
-            >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-                <path d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z" fill="#EA4335"/>
-                <path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z" fill="#4285F4"/>
-                <path d="M5.26498 14.2949C5.02498 13.5699 4.88501 12.7999 4.88501 11.9999C4.88501 11.1999 5.01998 10.4299 5.26498 9.7049L1.275 6.60986C0.46 8.22986 0 10.0599 0 11.9999C0 13.9399 0.46 15.7699 1.28 17.3899L5.26498 14.2949Z" fill="#FBBC05"/>
-                <path d="M12.0004 24.0001C15.2404 24.0001 17.9654 22.935 19.9454 21.095L16.0804 18.095C15.0054 18.82 13.6204 19.245 12.0004 19.245C8.8704 19.245 6.21537 17.135 5.26538 14.29L1.27539 17.385C3.25539 21.31 7.3104 24.0001 12.0004 24.0001Z" fill="#34A853"/>
-              </svg>
-              Google
-            </button>
-          </div>
-
-          <p className="mt-10 text-center text-sm text-slate-500">
-            Don't have an account?{" "}
-            <Link href="/register" className="font-bold text-slate-900 hover:underline">
-              Create one now
-            </Link>
-          </p>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-orange-400 hover:bg-orange-500 text-slate-900 py-1.5 rounded-md text-sm border border-orange-500 shadow-sm transition-colors flex items-center justify-center gap-2"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Continue"}
+              </button>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                By continuing, you agree to Multo's <Link href="/terms" className="text-blue-700 hover:underline hover:text-orange-600">Conditions of Use</Link> and <Link href="/privacy" className="text-blue-700 hover:underline hover:text-orange-600">Privacy Notice</Link>.
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <div>
+                <label htmlFor="otp" className="block text-xs font-bold text-slate-900 mb-1">
+                  Enter verification code
+                </label>
+                <input
+                  id="otp"
+                  type="text"
+                  required
+                  placeholder="6-digit code"
+                  className="w-full px-3 py-2 border border-slate-400 rounded-md shadow-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all text-sm tracking-widest text-center font-bold"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                />
+                <p className="text-[11px] text-slate-500 mt-2">
+                  We've sent a code to <span className="font-bold">{email}</span>. 
+                  <button 
+                    type="button" 
+                    onClick={() => setStep("email")}
+                    className="text-blue-700 hover:underline ml-1"
+                  >
+                    Change
+                  </button>
+                </p>
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-orange-400 hover:bg-orange-500 text-slate-900 py-1.5 rounded-md text-sm border border-orange-500 shadow-sm transition-colors flex items-center justify-center gap-2"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify Code"}
+              </button>
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                className="w-full text-xs text-slate-600 hover:underline py-2"
+              >
+                Resend Code
+              </button>
+            </form>
+          )}
         </div>
+
+        {/* New to Amazon section */}
+        {step === "email" && (
+          <div className="flex flex-col items-center w-full">
+            <div className="relative w-full flex items-center justify-center mb-4">
+              <div className="absolute inset-0 border-t border-slate-200"></div>
+              <span className="relative bg-white px-2 text-xs text-slate-500">New to Multo?</span>
+            </div>
+            <Link 
+              href="/register" 
+              className="w-full border border-slate-300 rounded-md py-1.5 text-center text-sm shadow-sm hover:bg-slate-50 transition-colors"
+            >
+              Create your Multo account
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Simple Footer */}
+      <div className="mt-auto py-8 w-full border-t border-slate-100 flex flex-col items-center gap-4 bg-slate-50">
+        <div className="flex gap-6 text-[11px] text-blue-700">
+          <Link href="/terms" className="hover:underline">Conditions of Use</Link>
+          <Link href="/privacy" className="hover:underline">Privacy Notice</Link>
+          <Link href="/help" className="hover:underline">Help</Link>
+        </div>
+        <p className="text-[11px] text-slate-500">
+          © 2026, Multo.com, Inc. or its affiliates
+        </p>
       </div>
     </div>
   );

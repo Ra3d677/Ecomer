@@ -9,6 +9,7 @@ import { useAuthStore } from "@/store/auth";
 import { StoreSettings } from "@/lib/types";
 import { setLanguageCookie } from "@/app/actions";
 import { translations, TranslationKey } from "@/lib/translations";
+import { supabase } from "@/lib/supabase";
 
 export default function Navbar({ activeTemplate = 'luxury', storeSettings, lang = 'en' }: { activeTemplate?: string, storeSettings?: StoreSettings, lang?: 'en' | 'ar' }) {
   const t = (key: TranslationKey) => translations[lang][key] || key;
@@ -45,9 +46,11 @@ export default function Navbar({ activeTemplate = 'luxury', storeSettings, lang 
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setIsUserMenuOpen(false);
+    router.refresh();
   };
 
   const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
