@@ -96,7 +96,7 @@ function LoginContent() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-semibold text-slate-700">Password</label>
-              <Link href="/forgot-password" size="sm" className="text-xs font-bold text-blue-600 hover:underline">
+              <Link href="/forgot-password" title="Forgot password?" className="text-xs font-bold text-blue-600 hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -136,8 +136,6 @@ function LoginContent() {
         </Link>
       </p>
     </div>
-  );
-}
   );
 }
 
