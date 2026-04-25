@@ -151,9 +151,9 @@ export default function ProductsManager({ initialProducts }: { initialProducts: 
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Status</label>
-                  <select value={formData.status || 'active'} onChange={e => setFormData({...formData, status: e.target.value as 'active' | 'draft'})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                  <select value={formData.status || 'active'} onChange={e => setFormData({...formData, status: e.target.value as 'active' | 'inactive'})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none">
                     <option value="active">Active</option>
-                    <option value="draft">Draft</option>
+                    <option value="inactive">Draft / Inactive</option>
                   </select>
                 </div>
               </div>
