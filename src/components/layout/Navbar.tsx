@@ -68,7 +68,7 @@ export default function Navbar({ activeTemplate = 'luxury', storeSettings, lang 
       </button>
       
       {isUserMenuOpen && mounted && (
-        <div className={`absolute ${language === 'ar' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'} mt-3 w-56 bg-white border border-slate-200 rounded-xl shadow-2xl py-2 z-50 transform transition-all`}>
+        <div className={`absolute ${lang === 'ar' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'} mt-3 w-56 bg-white border border-slate-200 rounded-xl shadow-2xl py-2 z-50 transform transition-all`}>
           {user ? (
             <>
               <div className="px-4 py-3 border-b border-slate-100 mb-1">

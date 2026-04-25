@@ -29,7 +29,8 @@ export default async function RootLayout({
 }>) {
   const settings = await getStoreSettings() || { templateColors: {} };
   const activeTemplate = await getActiveTemplate();
-  const currentColors = settings.templateColors?.[activeTemplate] || settings.templateColors?.['luxury'] || {};
+  const templateColors = (settings.templateColors || {}) as any;
+  const currentColors = templateColors[activeTemplate] || templateColors['luxury'] || {};
   const lang = await getLang();
 
   return (

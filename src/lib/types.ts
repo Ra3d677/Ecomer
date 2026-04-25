@@ -1,5 +1,6 @@
 export interface StoreSettings {
   storeName: string;
+  primaryColor?: string;
   templateColors: {
     [templateId: string]: {
       background: string;
