@@ -25,7 +25,17 @@ export async function getBanners(): Promise<Banner[]> {
     console.error('Error fetching banners:', error);
     return [];
   }
-  return data as Banner[];
+  return data.map((b: any) => ({
+    id: b.id,
+    imageUrl: b.image_url,
+    title: b.title,
+    subtitle: b.subtitle,
+    buttonText: b.button_text,
+    buttonLink: b.button_link,
+    isActive: b.is_active,
+    order: b.order,
+    templateId: b.template_id
+  })) as Banner[];
 }
 
 export async function getStoreSettings(): Promise<StoreSettings | null> {

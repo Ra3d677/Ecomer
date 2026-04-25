@@ -405,7 +405,7 @@ export default async function HomePage() {
   const products = await getProducts();
   const t = await getTranslation();
   const banners = allBanners
-    .filter(b => b.isActive && (b.template_id === activeTemplate || b.template_id === 'all' || !b.template_id))
+    .filter(b => b.isActive && (b.templateId === activeTemplate || b.templateId === 'all' || !b.templateId))
     .sort((a, b) => (a.order || 0) - (b.order || 0));
   
   if (activeTemplate === 'modern') return <ModernHomePage banners={banners} settings={settings} t={t} products={products} />;
