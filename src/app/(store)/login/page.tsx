@@ -73,22 +73,12 @@ function LoginContent() {
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'signup', 
+        type: 'email', 
       });
       
-      if (error) {
-        const { data: retryData, error: retryError } = await supabase.auth.verifyOtp({
-          email,
-          token: otp,
-          type: 'signin',
-        });
-        
-        if (retryError) throw retryError;
-        
-        if (retryData.user) {
-          handleSuccess(retryData.user);
-        }
-      } else if (data.user) {
+      if (error) throw error;
+      
+      if (data.user) {
         handleSuccess(data.user);
       }
     } catch (err: any) {
